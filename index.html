@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Benimle Çıkar Mısın? ❤️</title>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  font-family: 'Segoe UI', sans-serif;
+  background:
+    radial-gradient(circle at 20% 20%, #fff0f5 0%, transparent 35%),
+    radial-gradient(circle at 80% 80%, #ff69a6 0%, transparent 40%),
+    linear-gradient(135deg, #ffb6d0, #ff79ad, #e84383);
+}
+
+body::before {
+  content: "♥";
+  position: fixed;
+  font-size: 350px;
+  color: rgba(255,255,255,0.09);
+  top: 5%;
+  left: -80px;
+  animation: float 6s infinite ease-in-out;
+  pointer-events: none;
+}
+
+body::after {
+  content: "♥";
+  position: fixed;
+  font-size: 260px;
+  color: rgba(255,255,255,0.12);
+  bottom: -50px;
+  right: -40px;
+  animation: float 7s infinite ease-in-out reverse;
+  pointer-events: none;
+}
+
+@keyframes float {
+  0%,100% { transform: translateY(0) rotate(-10deg); }
+  50% { transform: translateY(-30px) rotate(10deg); }
+}
+
+.card {
+  background: rgba(255,255,255,0.88);
+  backdrop-filter: blur(12px);
+  padding: 40px 25px;
+  border-radius: 28px;
+  box-shadow: 0 15px 50px rgba(150,0,60,0.2);
+  text-align: center;
+  width: 90%;
+  max-width: 420px;
+  position: relative;
+  z-index: 5;
+  border: 1px solid rgba(255,255,255,0.8);
+}
+
+h1 {
+  color: #ad1457;
+  font-size: 2rem;
+  margin-bottom: 30px;
+}
+
+.btn-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  min-height: 120px;
+  position: relative;
+}
+
+button {
+  padding: 14px 25px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 5px 18px rgba(0,0,0,.15);
+  white-space: nowrap;
+}
+
+#yes-btn {
+  background: linear-gradient(135deg,#ff4081,#e91e63);
+  color: white;
+  z-index: 2;
+}
+
+#no-btn {
+  background: #78909c;
+  color: white;
+  z-index: 3;
+  position: relative;
+  touch-action: manipulation;
+}
+
+.rocket {
+  position: absolute;
+  font-size: 3.5rem;
+  transition: transform 1.5s ease, opacity 1s ease;
+  pointer-events: none;
+  z-index: 20;
+}
+
+.rocket-fly {
+  transform: translateY(-800px) scale(1.5);
+  opacity: 0;
+}
+
+#result-message {
+  display: none;
+  margin-top: 20px;
+  font-size: 1.2rem;
+  color: #880e4f;
+  font-weight: 600;
+  line-height: 1.6;
+  animation: fadeIn 1s ease forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* GÜLLER */
+
+.rose {
+  position: fixed;
+  z-index: 10;
+  pointer-events: none;
+  font-size: 35px;
+  left: 0;
+  top: 0;
+  animation: roseFly 2.3s cubic-bezier(.2,.8,.3,1) forwards;
+  animation-delay: var(--delay);
+}
+
+@keyframes roseFly {
+  0% {
+    transform: translate(0,0) rotate(0deg) scale(.5);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--tx),var(--ty)) rotate(720deg) scale(1.2);
+    opacity: 1;
+  }
+}
+
+@media(max-width:360px) {
+  .card { padding: 30px 15px; }
+  h1 { font-size: 1.7rem; }
+  button { padding: 12px 19px; font-size: 1rem; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+  <h1 id="question">Benimle çıkar mısın? ❤️</h1>
+
+  <div class="btn-container" id="btn-container">
+    <button id="yes-btn">Evet 💖</button>
+    <button id="no-btn">Hayır</button>
+  </div>
+
+  <div id="result-message"></div>
+
+</div>
+
+<script>
+const noBtn = document.getElementById('no-btn');
+const yesBtn = document.getElementById('yes-btn');
+const question = document.getElementById('question');
+const btnContainer = document.getElementById('btn-container');
+const resultMessage = document.getElementById('result-message');
+
+let noClickCount = 0;
+
+function handleNoInteraction(e) {
+  e.preventDefault();
+
+  noClickCount++;
+
+  if (noClickCount < 4) {
+
+    const containerRect = btnContainer.getBoundingClientRect();
+    const btnRect = noBtn.getBoundingClientRect();
+
+    const maxX = Math.max(0, containerRect.width - btnRect.width);
+    const maxY = Math.max(0, containerRect.height - btnRect.height);
+
+    const randomX = Math.random() * maxX;
+    const randomY = Math.random() * maxY;
+
+    noBtn.style.position = 'absolute';
+    noBtn.style.left = randomX + 'px';
+    noBtn.style.top = randomY + 'px';
+    noBtn.style.transform = 'none';
+
+  } else if (noClickCount === 4) {
+
+    const rocket = document.createElement('div');
+    rocket.className = 'rocket';
+    rocket.innerHTML = '🚀';
+
+    rocket.style.left =
+      (noBtn.offsetLeft + noBtn.offsetWidth / 2 - 25) + 'px';
+
+    rocket.style.top =
+      (noBtn.offsetTop + noBtn.offsetHeight) + 'px';
+
+    btnContainer.appendChild(rocket);
+
+    setTimeout(() => {
+      rocket.classList.add('rocket-fly');
+      noBtn.style.opacity = '0';
+      noBtn.style.pointerEvents = 'none';
+    }, 100);
+
+    setTimeout(() => {
+      rocket.remove();
+      noBtn.remove();
+    }, 1600);
+  }
+}
+
+noBtn.addEventListener('click', handleNoInteraction);
+
+/* GÜLLERİN İKİ YANDAN GELİP ORTADA TOPLANMASI */
+
+function createRoses() {
+
+  const centerX = window.innerWidth / 2;
+  const centerY = window.innerHeight / 2;
+
+  for (let i = 0; i < 32; i++) {
+
+    const rose = document.createElement('div');
+    rose.className = 'rose';
+    rose.innerHTML = '🌹';
+
+    const fromLeft = i % 2 === 0;
+
+    const startX = fromLeft ? -20 : window.innerWidth + 20;
+    const startY = Math.random() * window.innerHeight;
+
+    const targetX = fromLeft
+      ? centerX + Math.random() * 130
+      : centerX - Math.random() * 130;
+
+    const targetY = centerY - 130 + Math.random() * 260;
+
+    rose.style.left = startX + 'px';
+    rose.style.top = startY + 'px';
+
+    rose.style.setProperty('--tx', (targetX - startX) + 'px');
+    rose.style.setProperty('--ty', (targetY - startY) + 'px');
+    rose.style.setProperty('--delay', (Math.random() * 0.8) + 's');
+
+    document.body.appendChild(rose);
+
+    setTimeout(() => {
+      rose.remove();
+    }, 4500);
+  }
+}
+
+/* EVET BUTONU */
+
+yesBtn.addEventListener('click', () => {
+
+  btnContainer.style.display = 'none';
+
+  question.innerText = 'Sonsuza Kadar Evet! ✨';
+
+  resultMessage.innerHTML =
+    'Gökyüzündeki tüm yıldızlar bir araya gelse, senin gözlerindeki o tek bir ışıltı kadar güzel aydınlatamazdı dünyamı... İyi ki varsın! 🌹✨';
+
+  resultMessage.style.display = 'block';
+
+  // Güller
+  createRoses();
+
+  // Konfeti
+  const duration = 3000;
+  const animationEnd = Date.now() + duration;
+
+  const defaults = {
+    startVelocity: 30,
+    spread: 360,
+    ticks: 60,
+    zIndex: 100
+  };
+
+  function randomInRange(min, max) {
+    return Math.random() * (max - min) + min;
+  }
+
+  const interval = setInterval(() => {
+
+    const timeLeft = animationEnd - Date.now();
+
+    if (timeLeft <= 0) {
+      clearInterval(interval);
+      return;
+    }
+
+    const particleCount = 50 * (timeLeft / duration);
+
+    confetti({
+      ...defaults,
+      particleCount,
+      origin: {
+        x: randomInRange(0.1, 0.3),
+        y: Math.random() - 0.2
+      },
+      colors: ['#e91e63','#ff4081','#ff80ab','#ffffff']
+    });
+
+    confetti({
+      ...defaults,
+      particleCount,
+      origin: {
+        x: randomInRange(0.7, 0.9),
+        y: Math.random() - 0.2
+      },
+      colors: ['#e91e63','#ff4081','#ff80ab','#ffffff']
+    });
+
+  }, 250);
+
+});
+
+</script>
+
+</body>
+</html>
